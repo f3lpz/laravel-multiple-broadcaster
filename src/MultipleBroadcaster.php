@@ -7,6 +7,7 @@ use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Throwable;
 
 class MultipleBroadcaster extends Broadcaster
 {
@@ -56,7 +57,14 @@ class MultipleBroadcaster extends Broadcaster
     {
         foreach ($this->connections as $connection)
         {
-            $this->broadcastManager->connection($connection)->channel($channel, $callback, $options);
+            try {
+                $this->broadcastManager->connection($connection)->channel($channel, $callback, $options);
+            } catch (Throwable $e) {
+                Log::error("Error registering channel '{$channel}' on connection '{$connection}'", [
+                    'message' => $e->getMessage()
+                ]);
+            }
+            //$this->broadcastManager->connection($connection)->channel($channel, $callback, $options);
         }
 
         return $this;
@@ -73,7 +81,14 @@ class MultipleBroadcaster extends Broadcaster
         $returnValue = null;
 
         foreach ($this->connections as $connection) {
-            $returnValue = $returnValue ?? $this->broadcastManager->connection($connection)->auth($request);
+             try {
+                 $returnValue = $returnValue ?? $this->broadcastManager->connection($connection)->auth($request);
+             } catch (Throwable $e) {
+                 Log::error("Error authenticating on connection '{$connection}'", [
+                     'message' => $e->getMessage()
+                 ]);
+             }
+            //$returnValue = $returnValue ?? $this->broadcastManager->connection($connection)->auth($request);
         }
 
         return $returnValue;
@@ -91,7 +106,13 @@ class MultipleBroadcaster extends Broadcaster
         $returnValue = null;
 
         foreach ($this->connections as $connection) {
-            $returnValue = $returnValue ?? $this->broadcastManager->connection($connection)->validAuthenticationResponse($request, $result);
+            try {
+                $returnValue = $returnValue ?? $this->broadcastManager->connection($connection)->validAuthenticationResponse($request, $result);
+            } catch (Throwable $e) {
+                Log::error("Error generating valid authentication response on connection '{$connection}'", [
+                    'message' => $e->getMessage()
+                ]);
+            }
         }
 
         return $returnValue;
@@ -111,7 +132,7 @@ class MultipleBroadcaster extends Broadcaster
             if ($this->safe) {
                 try {
                     $this->broadcastManager->connection($connection)->broadcast($channels, $event, $payload);
-                } catch (Exception $exception) {
+                } catch (Throwable $exception) {
                     Log::error('Error broadcasting to ' . $connection, [
                         'message' => $exception->getMessage()
                     ]);
