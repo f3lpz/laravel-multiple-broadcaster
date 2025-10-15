@@ -60,9 +60,6 @@ class MultipleBroadcaster extends Broadcaster
             try {
                 $this->broadcastManager->connection($connection)->channel($channel, $callback, $options);
             } catch (Throwable $e) {
-                Log::error("Error registering channel '{$channel}' on connection '{$connection}'", [
-                    'message' => $e->getMessage()
-                ]);
             }
             //$this->broadcastManager->connection($connection)->channel($channel, $callback, $options);
         }
@@ -84,9 +81,6 @@ class MultipleBroadcaster extends Broadcaster
              try {
                  $returnValue = $returnValue ?? $this->broadcastManager->connection($connection)->auth($request);
              } catch (Throwable $e) {
-                 Log::error("Error authenticating on connection '{$connection}'", [
-                     'message' => $e->getMessage()
-                 ]);
              }
             //$returnValue = $returnValue ?? $this->broadcastManager->connection($connection)->auth($request);
         }
@@ -109,9 +103,6 @@ class MultipleBroadcaster extends Broadcaster
             try {
                 $returnValue = $returnValue ?? $this->broadcastManager->connection($connection)->validAuthenticationResponse($request, $result);
             } catch (Throwable $e) {
-                Log::error("Error generating valid authentication response on connection '{$connection}'", [
-                    'message' => $e->getMessage()
-                ]);
             }
         }
 
@@ -133,9 +124,6 @@ class MultipleBroadcaster extends Broadcaster
                 try {
                     $this->broadcastManager->connection($connection)->broadcast($channels, $event, $payload);
                 } catch (Throwable $exception) {
-                    Log::error('Error broadcasting to ' . $connection, [
-                        'message' => $exception->getMessage()
-                    ]);
                 }
             } else {
                 $this->broadcastManager->connection($connection)->broadcast($channels, $event, $payload);
